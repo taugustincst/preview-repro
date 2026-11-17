@@ -1,0 +1,97 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Preview sandbox repro</title></head><body><h1>Frame A — sandbox: allow-scripts allow-modals allow-popups (current dashboard)</h1><iframe id="frameA" sandbox="allow-scripts allow-modals allow-popups" srcdoc="<!doctype html>
+<html lang=&quot;en&quot;>
+<head>
+<meta charset=&quot;utf-8&quot;>
+<title>Pet replica</title>
+<meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src 'none'; script-src 'sha256-pLY3Mk1EQfMeT3CAUogyLiXhGwTWaM1ml6tA27l4JR0='; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'&quot;>
+<style>body{font-family:sans-serif}</style>
+</head>
+<body>
+<p id=&quot;status&quot;>SCRIPT DID NOT RUN</p>
+<p id=&quot;storage-note&quot; hidden>storage unavailable</p>
+<form id=&quot;name-form&quot;><input id=&quot;pet-name-input&quot; value=&quot;Mochi&quot;><button type=&quot;submit&quot;>Start</button></form>
+<div id=&quot;pet-view&quot; hidden>
+<p>Feeds: <span id=&quot;feeds&quot;>0</span> · Ticks: <span id=&quot;ticks&quot;>0</span></p>
+<button id=&quot;feed-button&quot; type=&quot;button&quot;>Feed</button>
+</div>
+<script type=&quot;module&quot;>
+const byId = (id) => document.getElementById(id);
+function attempt(operation) {
+  try { return operation(); } catch (error) {
+    byId('storage-note').hidden = false;
+    console.warn('storage unavailable:', error.name);
+    return null;
+  }
+}
+const storage = {
+  read: () => attempt(() => localStorage.getItem('pet-replica')),
+  write: (v) => attempt(() => localStorage.setItem('pet-replica', v)),
+};
+let feeds = 0; let ticks = 0;
+byId('name-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  byId('name-form').hidden = true;
+  byId('pet-view').hidden = false;
+});
+byId('feed-button').addEventListener('click', () => {
+  feeds += 1;
+  byId('feeds').textContent = String(feeds);
+  storage.write(String(feeds));
+});
+const raw = storage.read();
+if (raw !== null) feeds = Number(raw) || 0;
+byId('feeds').textContent = String(feeds);
+byId('status').textContent = 'SCRIPT RAN';
+setInterval(() => { ticks += 1; byId('ticks').textContent = String(ticks); }, 1000);
+</script>
+</body>
+</html>
+" width="420" height="260"></iframe><h1>Frame B — sandbox + allow-same-origin (candidate fix)</h1><iframe id="frameB" sandbox="allow-scripts allow-same-origin allow-modals allow-popups" srcdoc="<!doctype html>
+<html lang=&quot;en&quot;>
+<head>
+<meta charset=&quot;utf-8&quot;>
+<title>Pet replica</title>
+<meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src 'none'; script-src 'sha256-pLY3Mk1EQfMeT3CAUogyLiXhGwTWaM1ml6tA27l4JR0='; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'&quot;>
+<style>body{font-family:sans-serif}</style>
+</head>
+<body>
+<p id=&quot;status&quot;>SCRIPT DID NOT RUN</p>
+<p id=&quot;storage-note&quot; hidden>storage unavailable</p>
+<form id=&quot;name-form&quot;><input id=&quot;pet-name-input&quot; value=&quot;Mochi&quot;><button type=&quot;submit&quot;>Start</button></form>
+<div id=&quot;pet-view&quot; hidden>
+<p>Feeds: <span id=&quot;feeds&quot;>0</span> · Ticks: <span id=&quot;ticks&quot;>0</span></p>
+<button id=&quot;feed-button&quot; type=&quot;button&quot;>Feed</button>
+</div>
+<script type=&quot;module&quot;>
+const byId = (id) => document.getElementById(id);
+function attempt(operation) {
+  try { return operation(); } catch (error) {
+    byId('storage-note').hidden = false;
+    console.warn('storage unavailable:', error.name);
+    return null;
+  }
+}
+const storage = {
+  read: () => attempt(() => localStorage.getItem('pet-replica')),
+  write: (v) => attempt(() => localStorage.setItem('pet-replica', v)),
+};
+let feeds = 0; let ticks = 0;
+byId('name-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  byId('name-form').hidden = true;
+  byId('pet-view').hidden = false;
+});
+byId('feed-button').addEventListener('click', () => {
+  feeds += 1;
+  byId('feeds').textContent = String(feeds);
+  storage.write(String(feeds));
+});
+const raw = storage.read();
+if (raw !== null) feeds = Number(raw) || 0;
+byId('feeds').textContent = String(feeds);
+byId('status').textContent = 'SCRIPT RAN';
+setInterval(() => { ticks += 1; byId('ticks').textContent = String(ticks); }, 1000);
+</script>
+</body>
+</html>
+" width="420" height="260"></iframe></body></html>

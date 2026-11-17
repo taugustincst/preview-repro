@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pet replica</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-pLY3Mk1EQfMeT3CAUogyLiXhGwTWaM1ml6tA27l4JR0='; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<style>body{font-family:sans-serif}</style>
+</head>
+<body>
+<p id="status">SCRIPT DID NOT RUN</p>
+<p id="storage-note" hidden>storage unavailable</p>
+<form id="name-form"><input id="pet-name-input" value="Mochi"><button type="submit">Start</button></form>
+<div id="pet-view" hidden>
+<p>Feeds: <span id="feeds">0</span> · Ticks: <span id="ticks">0</span></p>
+<button id="feed-button" type="button">Feed</button>
+</div>
+<script type="module">
+const byId = (id) => document.getElementById(id);
+function attempt(operation) {
+  try { return operation(); } catch (error) {
+    byId('storage-note').hidden = false;
+    console.warn('storage unavailable:', error.name);
+    return null;
+  }
+}
+const storage = {
+  read: () => attempt(() => localStorage.getItem('pet-replica')),
+  write: (v) => attempt(() => localStorage.setItem('pet-replica', v)),
+};
+let feeds = 0; let ticks = 0;
+byId('name-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  byId('name-form').hidden = true;
+  byId('pet-view').hidden = false;
+});
+byId('feed-button').addEventListener('click', () => {
+  feeds += 1;
+  byId('feeds').textContent = String(feeds);
+  storage.write(String(feeds));
+});
+const raw = storage.read();
+if (raw !== null) feeds = Number(raw) || 0;
+byId('feeds').textContent = String(feeds);
+byId('status').textContent = 'SCRIPT RAN';
+setInterval(() => { ticks += 1; byId('ticks').textContent = String(ticks); }, 1000);
+</script>
+</body>
+</html>
